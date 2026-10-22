@@ -108,6 +108,10 @@ final class GeneradorPdf
         $dompdf->setPaper('A4', 'portrait');
         $dompdf->render();
 
+        if (App::esDemo()) {
+            self::marcaDeAgua($dompdf);
+        }
+
         $salida = $dompdf->output();
         if ($salida === null || $salida === '' || file_put_contents($destino, $salida, \LOCK_EX) === false) {
             throw new \RuntimeException('No se pudo escribir el PDF en ' . $destino);
@@ -121,6 +125,52 @@ final class GeneradorPdf
         ]);
 
         return $destino;
+    }
+
+    /**
+     * Sello cruzado en los PDF de una instalación de demostración, para que un
+     * comprobante de ejemplo no se pueda confundir con uno real.
+     */
+    private static function marcaDeAgua(Dompdf $dompdf): void
+    {
+        try {
+            $lienzo = $dompdf->getCanvas();
+            $fuente = $dompdf->getFontMetrics()->getFont('DejaVu Sans', 'bold')
+                ?? $dompdf->getFontMetrics()->getFont('sans-serif', 'bold');
+            if ($fuente === null) {
+                App::log('Marca de agua del demo: no se encontró una fuente para dibujarla.');
+                return;
+            }
+            App::log('Marca de agua del demo: dibujando con ' . basename((string) $fuente));
+            $rojo = [0.86, 0.42, 0.40];
+            $metricas = $dompdf->getFontMetrics();
+
+            // A4 en puntos: 595 x 842. La marca va en diagonal, centrada en la hoja:
+            // se mide el ancho real del texto para que no se salga ni se pise.
+            $angulo = 30.0;
+            $rad = deg2rad($angulo);
+            $centroX = 595 / 2;
+            $centroY = 842 / 2;
+
+            foreach ([
+                ['COMPROBANTE NO VÁLIDO', 34.0, 0.0],
+                ['demo · Facturador ARCA simple', 15.0, 58.0],
+            ] as [$texto, $tamanio, $corrimiento]) {
+                $ancho = (float) $metricas->getTextWidth($texto, $fuente, $tamanio);
+
+                // Punto de arranque para que el texto quede centrado en la hoja...
+                $x = $centroX - ($ancho * cos($rad)) / 2;
+                $y = $centroY + ($ancho * sin($rad)) / 2;
+
+                // ...y corrido en perpendicular, para la segunda línea.
+                $x += $corrimiento * sin($rad);
+                $y += $corrimiento * cos($rad);
+
+                $lienzo->page_text($x, $y, $texto, $fuente, $tamanio, $rojo, 0, 0, $angulo);
+            }
+        } catch (\Throwable $e) {
+            App::log('No se pudo poner la marca de agua del demo: ' . $e->getMessage());
+        }
     }
 
     /** HTML del comprobante (templates/factura.php). */

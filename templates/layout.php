@@ -30,15 +30,15 @@ $menu = [
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= App::esc($titulo) ?> · Facturador ARCA simple</title>
-    <link rel="stylesheet" href="assets/app.css?v=3">
+    <?php
+    // La versión sale de la fecha del archivo: al cambiar el CSS o el JS, el
+    // navegador los vuelve a pedir solos y nunca queda uno viejo cacheado.
+    $vCss = @filemtime(App::raiz() . '/public/assets/app.css') ?: 1;
+    $vJs = @filemtime(App::raiz() . '/public/assets/app.js') ?: 1;
+    ?>
+    <link rel="stylesheet" href="assets/app.css?v=<?= $vCss ?>">
 </head>
 <body<?= App::esDemo() ? ' data-demo="1" data-demo-mensaje="' . App::esc(App::MENSAJE_DEMO) . '" data-demo-contacto="' . App::esc((string) App::config('demo_contacto', 'https://ddw.com.ar')) . '"' : '' ?>>
-<?php if (App::esDemo()): ?>
-    <div class="cinta-demo">
-        <span><strong>Demostración.</strong> <?= App::esc(App::MENSAJE_DEMO) ?></span>
-        <a class="boton" href="<?= App::esc((string) App::config('demo_contacto', 'https://ddw.com.ar')) ?>" target="_blank" rel="noopener">Contactanos</a>
-    </div>
-<?php endif; ?>
 <header class="barra">
     <a class="marca" href="index.php">Facturador <span>ARCA</span> simple</a>
     <?php if ($usuario !== null): ?>
@@ -95,6 +95,6 @@ $menu = [
     </span>
     <span class="firma">Desarrollado por <a href="https://ddw.com.ar" target="_blank" rel="noopener">DDW</a></span>
 </footer>
-<script src="assets/app.js?v=3"></script>
+<script src="assets/app.js?v=<?= $vJs ?>"></script>
 </body>
 </html>

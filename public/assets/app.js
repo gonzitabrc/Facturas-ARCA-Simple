@@ -79,9 +79,26 @@
             capa.querySelector('[data-cerrar]').focus();
         }
 
-        // Cualquier cosa que haga algo: botones, envíos de formulario y los
-        // links que descargan o salen de la app.
+        // Los campos de archivo no deben poder abrir ni el selector.
+        function trabarArchivos() {
+            document.querySelectorAll('input[type="file"]').forEach(function (campo) {
+                campo.disabled = true;
+                campo.title = mensaje;
+            });
+        }
+        trabarArchivos();
+
+        // Cualquier cosa que haga algo: botones, envíos de formulario, campos de
+        // archivo y los links que descargan o salen de la app.
         document.addEventListener('click', function (evento) {
+            const archivo = evento.target.closest('input[type="file"], label');
+            if (archivo && (archivo.matches('input[type="file"]') || archivo.querySelector('input[type="file"]'))) {
+                evento.preventDefault();
+                evento.stopPropagation();
+                mostrarCartel();
+                return;
+            }
+
             const boton = evento.target.closest('button, input[type="submit"]');
             const link = evento.target.closest('a');
 
@@ -107,6 +124,18 @@
             evento.stopPropagation();
             mostrarCartel();
         }, true);
+
+        // Al entrar se avisa una vez por visita; después, cada vez que tocan algo.
+        let yaAviso = false;
+        try {
+            yaAviso = window.sessionStorage.getItem('demo-avisado') === '1';
+            window.sessionStorage.setItem('demo-avisado', '1');
+        } catch (e) {
+            yaAviso = false;   // navegación privada o storage bloqueado
+        }
+        if (!yaAviso) {
+            mostrarCartel();
+        }
 
         return true;
     }
