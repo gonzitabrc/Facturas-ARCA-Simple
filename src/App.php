@@ -203,7 +203,10 @@ final class App
             || ($_SERVER['SERVER_PORT'] ?? '') === '443'
             || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
 
-        session_name(self::NOMBRE_SESION);
+        // Un nombre de sesión por instalación: si en el mismo dominio conviven
+        // dos (por ejemplo la demostración en la raíz y la real en /produccion),
+        // cada una tiene su cookie y no se pisan.
+        session_name(self::NOMBRE_SESION . '_' . substr(sha1(self::raiz()), 0, 10));
         session_set_cookie_params([
             'lifetime' => 0,
             'path'     => '/',

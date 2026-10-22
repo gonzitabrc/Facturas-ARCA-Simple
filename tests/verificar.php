@@ -15,6 +15,16 @@ if (\PHP_SAPI !== 'cli') {
     exit('Este script se corre desde la línea de comandos.');
 }
 
+// En una instalación de demostración la app bloquea las operaciones a propósito,
+// así que las pruebas no tienen sentido ahí: se corren en una instalación normal.
+require __DIR__ . '/../src/App.php';
+\Facturador\App::iniciar(false);
+if (\Facturador\App::esDemo()) {
+    echo "Esta instalación está en modo demostración ('modo_demo' => true).", \PHP_EOL;
+    echo 'Las pruebas se corren en una instalación normal, no acá.', \PHP_EOL;
+    exit(0);
+}
+
 $filtro = $argv[1] ?? '';
 $archivos = glob(__DIR__ . '/casos/*.php') ?: [];
 sort($archivos);
