@@ -1,0 +1,4 @@
+Options -Indexes
+<FilesMatch "\.(sqlite|json|lock|log)$">
+  Require all denied
+</FilesMatch>

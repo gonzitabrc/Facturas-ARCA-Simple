@@ -1,0 +1,34 @@
+# Configuración con la app_key y los usuarios: nunca se versiona
+config/config.php
+config/config.php.*
+
+# Datos: base, certificados, PDF, logs, archivos subidos
+storage/**
+!storage/**/.gitkeep
+!storage/.htaccess
+
+# Dependencias
+vendor/
+
+# Paquetes y notas de instalación de cada cliente (datos reales adentro).
+# Solo viajan los ejemplos: ver deploy/README.md
+deploy/*
+!deploy/README.md
+!deploy/PASOS-ejemplo.md
+
+# Material fiscal, por si alguna vez queda fuera de storage/
+*.crt
+*.key
+*.csr
+*.pem
+*.p12
+*.pfx
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+
+# Sistema operativo y editores
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
