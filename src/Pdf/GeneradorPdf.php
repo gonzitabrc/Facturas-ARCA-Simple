@@ -142,31 +142,35 @@ final class GeneradorPdf
                 return;
             }
             App::log('Marca de agua del demo: dibujando con ' . basename((string) $fuente));
-            $rojo = [0.86, 0.42, 0.40];
+            $rosa = [0.93, 0.72, 0.70];   // tono claro: se lee, no tapa el comprobante
             $metricas = $dompdf->getFontMetrics();
 
-            // A4 en puntos: 595 x 842. La marca va en diagonal, centrada en la hoja:
-            // se mide el ancho real del texto para que no se salga ni se pise.
-            $angulo = 30.0;
+            // A4 en puntos: 595 x 842. La marca cruza la hoja en diagonal, de abajo a
+            // la izquierda hacia arriba a la derecha. El ángulo va en negativo porque
+            // en el lienzo la Y crece hacia abajo. Se mide el ancho real del texto
+            // para centrarlo y que no se corte en ningún borde.
+            $angulo = -30.0;
             $rad = deg2rad($angulo);
             $centroX = 595 / 2;
             $centroY = 842 / 2;
 
             foreach ([
-                ['COMPROBANTE NO VÁLIDO', 34.0, 0.0],
-                ['demo · Facturador ARCA simple', 15.0, 58.0],
+                ['COMPROBANTE NO VÁLIDO', 50.0, 0.0],
+                ['demo · Facturador ARCA simple', 19.0, 66.0],
             ] as [$texto, $tamanio, $corrimiento]) {
-                $ancho = (float) $metricas->getTextWidth($texto, $fuente, $tamanio);
+                // getTextWidth mide algo más ancho de lo que después dibuja el lienzo
+                // (medido sobre el PDF generado): se corrige para que quede centrado.
+                $ancho = (float) $metricas->getTextWidth($texto, $fuente, $tamanio) * 0.81;
 
-                // Punto de arranque para que el texto quede centrado en la hoja...
+                // Punto de arranque para que la línea quede centrada en la hoja...
                 $x = $centroX - ($ancho * cos($rad)) / 2;
-                $y = $centroY + ($ancho * sin($rad)) / 2;
+                $y = $centroY - ($ancho * sin($rad)) / 2;
 
-                // ...y corrido en perpendicular, para la segunda línea.
-                $x += $corrimiento * sin($rad);
+                // ...y corrida en perpendicular, para la segunda línea.
+                $x += $corrimiento * -sin($rad);
                 $y += $corrimiento * cos($rad);
 
-                $lienzo->page_text($x, $y, $texto, $fuente, $tamanio, $rojo, 0, 0, $angulo);
+                $lienzo->page_text($x, $y, $texto, $fuente, $tamanio, $rosa, 0, 0, $angulo);
             }
         } catch (\Throwable $e) {
             App::log('No se pudo poner la marca de agua del demo: ' . $e->getMessage());
